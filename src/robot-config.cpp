@@ -26,16 +26,15 @@ robot_specs_t tank_specs = {
   .dist_between_wheels = 8.5,
   .drive_correction_cutoff = 4,
 
-  // WARNING: DUMMY VALUES, TO BE REPLACED
   {
-    0.5,
-    //0.065, 
-    0,
-    0, 
-    0,
-    0.5,
-    0.5
+    .p = 0.9,
+    .i = 0,
+    .d = 0.00025, 
+    .f = 0,
+    .deadband = 0.2,
+    .on_target_time = 1.0
   },
+  // WARNING: DUMMY VALUES, TO BE REPLACED
   {
     1, 
     0,
@@ -45,7 +44,7 @@ robot_specs_t tank_specs = {
     0.1
   },
   {
-    1, 
+    0, 
     0,
     0, 
     0,
@@ -54,7 +53,7 @@ robot_specs_t tank_specs = {
   }
 };
 
-OdometryTank odom(drive_left, drive_right, tank_specs, &imu);
+OdometryTank odom(drive_left, drive_right, tank_specs, &imu, true); // just added the true arg today, did not get to test
 
 TankDrive tank_drive(drive_left, drive_right, tank_specs, &odom);
 
@@ -80,9 +79,9 @@ Lift lift(lift_motors, claw, lift_pid);
 
 // === WINGS ===
 
-pneumatics wing_deploy(Brain.ThreeWirePort.H);
-pneumatics wing_deploy2(Brain.ThreeWirePort.F);
-pneumatics wing_clamp(Brain.ThreeWirePort.G);
+digital_out wing_deploy(Brain.ThreeWirePort.H);
+digital_out wing_deploy2(Brain.ThreeWirePort.F);
+digital_out wing_clamp(Brain.ThreeWirePort.G);
 Wings wings(wing_deploy, wing_deploy2, wing_clamp);
 
 // === SENSORS ===

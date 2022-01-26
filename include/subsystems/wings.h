@@ -16,7 +16,7 @@ class Wings {
   public:
 
   // Constructor
-  Wings(digital_out wing_deploy, digital_out wing_deploy2, digital_out clamp);
+  Wings(digital_out &wing_deploy, digital_out &wing_deploy2, digital_out &clamp);
 
   /**
    * Calls both deployment solenoids to release the wings at the start of a 

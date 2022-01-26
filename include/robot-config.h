@@ -20,6 +20,7 @@ extern motor fr, mr, br, tr;
 extern motor_group drive_left;
 extern motor fl, ml, bl, tl;
 
+extern OdometryTank odom;
 extern TankDrive tank_drive;
 
 
@@ -33,9 +34,9 @@ extern Lift lift;
 // === WINGS ===
 
 extern Wings wings;
-extern pneumatics wing_deploy;
-extern pneumatics wing_deploy2;
-extern pneumatics wing_clamp;
+extern digital_out wing_deploy;
+extern digital_out wing_deploy2;
+extern digital_out wing_clamp;
 
 // === SENSORS ===
 

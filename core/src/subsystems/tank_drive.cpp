@@ -66,29 +66,61 @@ void TankDrive::drive_arcade(double forward_back, double left_right, int power)
  * @param correction How much the robot should correct for being off angle
  * @param dir Whether the robot is travelling forwards or backwards
  */
-bool TankDrive::drive_forward(double inches, double speed, double correction, directionType dir)
-{
-  static position_t pos_setpt;
+// bool TankDrive::drive_forward(double inches, double speed, double correction, directionType dir)
+// {
+//   static position_t pos_setpt;
 
-  // Generate a point X inches forward of the current position, on first startup
+//   // Generate a point X inches forward of the current position, on first startup
+//   if (!func_initialized)
+//   {
+//     saved_pos = odometry->get_position();
+//     drive_pid.reset();
+
+//     // Use vector math to get an X and Y
+//     Vector current_pos({saved_pos.x , saved_pos.y});
+//     Vector delta_pos(deg2rad(saved_pos.rot), inches);
+//     Vector setpt_vec = current_pos + delta_pos;
+
+//     // Save the new X and Y values
+//     pos_setpt = {.x=setpt_vec.get_x(), .y=setpt_vec.get_y()};
+
+//     func_initialized = true;
+//   }
+
+//   // Call the drive_to_point with updated point values
+//   return drive_to_point(pos_setpt.x, pos_setpt.y, speed, correction, dir);
+// }
+
+/**
+ * Stolen/adapted from 10/1/21 Core to make sure it's me messing stuff up
+ */
+bool TankDrive::drive_forward(double inches, double percent_speed)
+{
+  // On the first run of the funciton, reset the motor position and PID
   if (!func_initialized)
   {
-    saved_pos = odometry->get_position();
+    left_motors.resetPosition();
     drive_pid.reset();
 
-    // Use vector math to get an X and Y
-    Vector current_pos({saved_pos.x , saved_pos.y});
-    Vector delta_pos(deg2rad(saved_pos.rot), inches);
-    Vector setpt_vec = current_pos + delta_pos;
-
-    // Save the new X and Y values
-    pos_setpt = {.x=setpt_vec.get_x(), .y=setpt_vec.get_y()};
+    drive_pid.set_limits(-fabs(percent_speed), fabs(percent_speed));
+    drive_pid.set_target(inches);
 
     func_initialized = true;
   }
 
-  // Call the drive_to_point with updated point values
-  return drive_to_point(pos_setpt.x, pos_setpt.y, speed, correction, dir);
+  // Update PID loop and drive the robot based on it's output
+  drive_pid.update(left_motors.position(rotationUnits::rev) * PI * config.odom_wheel_diam);
+  drive_tank(drive_pid.get(), drive_pid.get());
+
+  // If the robot is at it's target, return true
+  if (drive_pid.is_on_target())
+  {
+    drive_tank(0, 0);
+    func_initialized = false;
+    return true;
+  }
+
+  return false;
 }
 
 /**

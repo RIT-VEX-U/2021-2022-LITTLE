@@ -52,7 +52,9 @@ public:
    * @param correction How much the robot should correct for being off angle
    * @param dir Whether the robot is travelling forwards or backwards
    */
-  bool drive_forward(double inches, double speed, double correction, directionType dir);
+  // bool drive_forward(double inches, double speed, double correction, directionType dir);
+
+  bool drive_forward(double inches, double speed);
 
   /**
    * Autonomously turn the robot X degrees to the right (negative for left), with a maximum motor speed
