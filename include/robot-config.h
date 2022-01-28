@@ -41,6 +41,7 @@ extern digital_out wing_clamp;
 // === SENSORS ===
 
 extern inertial imu;
+extern rotation lift_sensor;
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.

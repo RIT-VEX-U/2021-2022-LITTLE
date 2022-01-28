@@ -24,34 +24,31 @@ robot_specs_t tank_specs = {
   .odom_wheel_diam = 2.75,
   .odom_gear_ratio = 1,
   .dist_between_wheels = 8.5,
-  .drive_correction_cutoff = 4,
+  .drive_correction_cutoff = 7.0,
 
   // Driving PID
-  {
-    .p = 0.95,
+  .drive_pid={
+    .p = 0.7,
     .i = 0,
     .d = 0.00025, 
     .f = 0,
+    .k = .1,
     .deadband = 0.2,
-    .on_target_time = 1.0
+    .on_target_time = .1
   },
   // Turning PID
-  {
-    .p = 0.8, 
+  .turn_pid={
+    .p = 0.08, 
     .i = 0,
-    .d = 0, 
+    .d = 0.005, 
     .f = 0,
-    .deadband = 0.5,
+    .deadband = 2.0,
     .on_target_time = 0.1
   },
   // WARNING: DUMMY VALUES, TO BE REPLACED
-  {
-    0, 
-    0,
-    0, 
-    0,
-    0.5,
-    0.1
+  .correction_pid={
+    .p=0.02,
+    .d=0.002
   }
 };
 
@@ -68,15 +65,18 @@ pneumatics claw(Brain.ThreeWirePort.E);
 
 // WARNING: DUMMY VALUES, TO BE REPLACED
 PID::pid_config_t lift_pid = {
-  .p = 1,
+  .p = 300,
   .i = 0,
-  .d = 0,
+  // .d = 60,
   .f = 0,
   .deadband = 0.5,
   .on_target_time = 0.1
 };
 
-Lift lift(lift_motors, claw, lift_pid);
+rotation lift_sensor(PORT9);
+
+Lift lift(lift_motors, lift_sensor, claw, lift_pid);
+
 
 
 // === WINGS ===
@@ -96,5 +96,8 @@ inertial imu(PORT2);
  * This should be called at the start of your int main function.
  */
 void vexcodeInit(void) {
+  imu.calibrate();
+  wings.undeploy();
+
   // Nothing to initialize
 }

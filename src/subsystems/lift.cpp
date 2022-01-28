@@ -1,20 +1,31 @@
-/**
- * NOTE: This code was taken and adapted from the 2021-2022-BIG repo. It will 
- * eventually be generalized and added into Core.
- */
-
 #include "subsystems/lift.h"
 
 #define LIFT_DOWN 0
-#define LIFT_DRIVE .5
-#define LIFT_PLATFORM 1.5
-#define LIFT_UP 2.0
+#define LIFT_DRIVE 30
+#define LIFT_PLATFORM 100
+#define LIFT_UP 135
+
+#define LIFT_SPEED 260
 
 
-Lift::Lift(vex::motor_group &lift_motors, /*vex::limit &lift_home,*/ vex::pneumatics &lift_claw, PID::pid_config_t &lift_pid_cfg)
-: lift_motors(lift_motors), /*lift_home(lift_home),*/ lift_claw(lift_claw), lift_pid(lift_pid_cfg)
+Lift::Lift(vex::motor_group &lift_motors, vex::rotation &sensor, vex::pneumatics &lift_claw, PID::pid_config_t &lift_pid_cfg)
+: lift_motors(lift_motors), sensor(sensor), lift_claw(lift_claw), lift_pid(lift_pid_cfg)
 {
+  hold = true;
 
+  task bg([](void* ptr){
+    Lift &lift = *((Lift*)ptr);
+
+    while(true)
+    {
+      if(lift.get_bg_hold())
+        lift.hold_lift();
+
+      vexDelay(20);
+    }
+
+    return 0;
+  }, this);
 }
 
 /**
@@ -23,15 +34,44 @@ Lift::Lift(vex::motor_group &lift_motors, /*vex::limit &lift_home,*/ vex::pneuma
   * Positions include: "Down" (waiting for pickup), "Driving" (goal is kept just off the ground),
   *                    "Platform" (lift is placing on the platform), "UP" (max height)
   */
-void Lift::control(bool up_btn, bool down_btn, bool claw_btn)
+void Lift::control(bool up_btn, bool down_btn, bool claw_open, bool claw_close)
 {
-  static bool up_btn_last = false, down_btn_last = false, claw_btn_last = false;
+  
+  // static bool claw_btn_last = false;
+  // static bool claw_state = false;
 
-  static bool claw_state = false;
+  static timer ctl_tmr;
 
-  bool up_new_press = (up_btn && !up_btn_last);
-  bool down_new_press = (down_btn && !down_btn_last);
-  bool claw_new_press = (claw_btn && !claw_btn_last);
+  // bool up_new_press = (up_btn && !up_btn_last);
+  // bool down_new_press = (down_btn && !down_btn_last);
+  // bool claw_new_press = (claw_btn && !claw_btn_last);
+
+  double pos = get_sensor();
+
+  double min = (is_ring_collecting) ? LIFT_DRIVE : LIFT_DOWN ;
+
+  if(up_btn && pos < LIFT_UP)
+  {
+    // lift_setpt += LIFT_SPEED * ctl_tmr.time(timeUnits::sec);
+    setpoint = pos + 20;
+    lift_motors.spin(directionType::fwd, 12, voltageUnits::volt);
+    hold = false;
+  } else if (down_btn && pos > min)
+  {
+    setpoint -= LIFT_SPEED * ctl_tmr.time(timeUnits::sec);
+    hold = true;
+  } else if (pos < min)
+  {
+    setpoint = min;
+    hold = true;
+  }else
+  {
+    hold = true;
+  }
+
+  ctl_tmr.reset();
+  
+  /*
 
   // Lift program control through a state machine
   switch(current_lift_pos)
@@ -65,18 +105,15 @@ void Lift::control(bool up_btn, bool down_btn, bool claw_btn)
   }
 
   set_lift_height(current_lift_pos);
+  */
 
   // Toggle the claw and reset the lift integral term to avoid snap-back
-  if(claw_new_press)
+  if(claw_open)
   {
-    lift_pid.reset();
-    claw_state = !claw_state;
-    lift_claw.set(claw_state);
+    lift_claw.open();
+  } else if (claw_close) {
+    lift_claw.close();
   }
-
-  up_btn_last = up_btn;
-  down_btn_last = down_btn;
-  claw_btn_last = claw_btn;
 }
 
 /**
@@ -88,12 +125,12 @@ void Lift::manual_control(bool btn_lift_up, bool btn_lift_down, bool btn_claw_op
   double pos = lift_motors.position(vex::rotationUnits::rev);
 
   // ======== LIFT MOTOR CONTROLS ========
-  /*if(pos < LIFT_DOWN || pos > LIFT_UP)
+  if(pos < LIFT_DOWN || pos > LIFT_UP)
     lift_motors.spinTo(pos, vex::rotationUnits::rev);    
-  else*/ if(btn_lift_up)
-    lift_motors.spin(vex::directionType::fwd, 9, voltageUnits::volt);
+  else if(btn_lift_up)
+    lift_motors.spin(vex::directionType::fwd);
   else if(btn_lift_down)
-    lift_motors.spin(vex::directionType::rev, 9, voltageUnits::volt);
+    lift_motors.spin(vex::directionType::rev);
   else
     lift_motors.spinTo(pos, vex::rotationUnits::rev);
   
@@ -114,20 +151,22 @@ bool Lift::set_lift_height(LiftPosition pos)
   switch(pos)
   {
     case DOWN:
-      hold_lift(LIFT_DOWN);
+      setpoint = LIFT_DOWN;
     break;
     case DRIVING:
-      hold_lift(LIFT_DRIVE);
+      setpoint = LIFT_DRIVE;
     break;
     case PLATFORM:
-      hold_lift(LIFT_PLATFORM);
+      setpoint = LIFT_PLATFORM;
     break;
     case UP:
-      hold_lift(LIFT_UP);
+      setpoint = LIFT_UP;
     break;
     default:
     break;
   }
+
+  hold = true;
 
   return lift_pid.is_on_target();
 }
@@ -137,56 +176,63 @@ bool Lift::set_lift_height(LiftPosition pos)
   */
 void Lift::hold_lift(double rot)
 {
-  lift_pid.set_target(rot);
-  lift_pid.update(lift_motors.rotation(rotationUnits::rev));
+  if(rot == __DBL_MAX__)
+    rot=setpoint;
 
+  lift_pid.set_target(rot);
+  lift_pid.update(get_sensor());
+  
   lift_motors.spin(directionType::fwd, lift_pid.get(), voltageUnits::mV);
 }
 
 /**
   * Home the lift to a zero position, either non-blocking or blocking
   */
-// bool Lift::home(bool blocking)
-// {
-//   static timer watchdog;
-//   static bool is_init = false;
-
-//   if(!is_init)
-//   {
-//     watchdog.reset();
-//     is_init = false;
-//   }
-
-//   do
-//   {
-//     // If the watchdog times out, stop stressing the motor and return
-//     if(lift_home || watchdog.time(timeUnits::sec) > 5)
-//     {
-//       lift_motors.setPosition(0, rotationUnits::rev);
-//       is_init = false;
-//       return true;
-//     }
-
-//     lift_motors.spin(directionType::rev, 50, velocityUnits::pct);
-
-//   } while(blocking);
-
-//   return false;
-// }
-
 bool Lift::home(bool blocking)
 {
-  do
-  {
-    lift_motors.spin(directionType::rev, 12, voltageUnits::volt);
-  } while(lift_motors.current() < 2.0 && blocking);
+  // UNUSED ON THIS BOT!
+  return true;
+  // static timer watchdog;
+  // static bool is_init = false;
 
-  lift_motors.setPosition(0, rotationUnits::rev);
+  // if(!is_init)
+  // {
+  //   watchdog.reset();
+  //   hold = false;
+  //   is_init = false;
+  // }
 
-  return lift_motors.current() >= 2.0;
+  // do
+  // {
+  //   // If the watchdog times out, stop stressing the motor and return
+  //   if(lift_home || watchdog.time(timeUnits::sec) > 5)
+  //   {
+  //     lift_motors.setPosition(0, rotationUnits::rev);
+  //     is_init = false;
+  //     hold = true;
+  //     setpoint = LIFT_DOWN;
+  //     return true;
+  //   }
+
+  //   lift_motors.spin(directionType::rev, 50, velocityUnits::pct);
+
+  // } while(blocking);
+
+  // return false;
 }
 
 void Lift::set_ring_collecting(bool val)
 {
   is_ring_collecting = val;
+}
+
+bool Lift::get_bg_hold()
+{
+  return hold;
+}
+
+double Lift::get_sensor()
+{
+  double pos = sensor.angle();
+  return pos + (pos > 180 ? -360 : 0);
 }
