@@ -26,23 +26,25 @@ robot_specs_t tank_specs = {
   .dist_between_wheels = 8.5,
   .drive_correction_cutoff = 4,
 
+  // Driving PID
   {
-    .p = 0.9,
+    .p = 0.95,
     .i = 0,
     .d = 0.00025, 
     .f = 0,
     .deadband = 0.2,
     .on_target_time = 1.0
   },
-  // WARNING: DUMMY VALUES, TO BE REPLACED
+  // Turning PID
   {
-    1, 
-    0,
-    0, 
-    0,
-    0.5,
-    0.1
+    .p = 0.8, 
+    .i = 0,
+    .d = 0, 
+    .f = 0,
+    .deadband = 0.5,
+    .on_target_time = 0.1
   },
+  // WARNING: DUMMY VALUES, TO BE REPLACED
   {
     0, 
     0,

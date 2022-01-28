@@ -39,10 +39,11 @@ class Wings {
 
   bool check_open();
 
+  digital_out &clamp;
+
   private:
 
-  digital_out wing_deploy, wing_deploy2, clamp;
-  bool is_open;
+  digital_out &wing_deploy, &wing_deploy2;
 };
 
 #endif

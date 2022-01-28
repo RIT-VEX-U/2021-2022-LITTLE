@@ -2,15 +2,6 @@
 #include "robot-config.h"
 #include <iostream>
 
-// Had to declare this here because of annoying VEXcode type parsing :/
-void wings_toggle() {
-  if(wings.check_open()) {
-    wings.clamp_close();
-    return;
-  }
-  wings.clamp_open();
-}
-
 void wings_undeploy() {
   wings.undeploy();
 }
@@ -22,22 +13,18 @@ void OpControl::opcontrol()
 {
   // ========== INIT ==========
   
-  // lift.home();
-  //wings.undeploy(); // To be removed before comp, this should happen at the start of auto
+  // honestly not sure what position the wings will be in at the end of auto
+  wings.undeploy();
   
   // ========= TESTING ZONE: TO BE REMOVED ==========
 
-  while(!master.ButtonA.pressing()) {}
-  while(!tank_drive.drive_forward(24.0, 0.5, 0, directionType::fwd)) {
-    wait(20, timeUnits::msec);
-  }
-
+  
   // ========= END OF TESTING ZONE ==========
 
 
   // ========== LISTENER EVENTS ==========
 
-  master.ButtonL1.pressed(wings_toggle);
+  // master.ButtonUp.pressed(wings_toggle);
 
   master.ButtonDown.pressed(wings_undeploy);
 
@@ -52,7 +39,7 @@ void OpControl::opcontrol()
 
     // I know this is deprecated, just bear with me for a minute
     lift.manual_control(master.ButtonR1.pressing(), master.ButtonR2.pressing(), 
-      master.ButtonA.pressing(), master.ButtonB.pressing());
+      master.ButtonL2.pressing(), master.ButtonL1.pressing());
     
     // ========== SECONDARY REMOTE ==========
 
