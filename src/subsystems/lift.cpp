@@ -30,9 +30,8 @@ Lift::Lift(vex::motor_group &lift_motors, vex::rotation &sensor, vex::pneumatics
 
 /**
   * Contains driver controls for the lift / claw subsystem.
-  * Pressing up_btn will cycle the lift "up" through the positions, and down_btn does the opposite.
-  * Positions include: "Down" (waiting for pickup), "Driving" (goal is kept just off the ground),
-  *                    "Platform" (lift is placing on the platform), "UP" (max height)
+  * Pressing up_btn will bring the lift up, and down_btn will bring it down. Groundbreaking.
+  * claw_open and claw_close control the pneumatics on, you guessed it, the claw.
   */
 void Lift::control(bool up_btn, bool down_btn, bool claw_open, bool claw_close)
 {
@@ -230,16 +229,25 @@ bool Lift::home(bool blocking)
   // return false;
 }
 
+/**
+ * Allow the ring collection system to tell the lift to move out of the way when it's running
+ */
 void Lift::set_ring_collecting(bool val)
 {
   is_ring_collecting = val;
 }
 
+/**
+ * Get whether the background thread is holding the lift up, for thread use only
+ */
 bool Lift::get_bg_hold()
 {
   return hold;
 }
 
+/**
+ * Get a modified version of the sensor output to avoid rolling over 0->359
+ */
 double Lift::get_sensor()
 {
   double pos = sensor.angle();

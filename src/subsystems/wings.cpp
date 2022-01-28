@@ -25,16 +25,25 @@ void Wings::deploy() {
   clamp.set(true);
 }
 
+/**
+ * Fold in the wings, opposite of deploying them
+ */
 void Wings::undeploy() {
   wing_deploy2.set(false);
   wait(500, timeUnits::msec);
   wing_deploy.set(false);
 }
 
+/**
+ * Opens the wing clamps
+ */
 void Wings::clamp_open() {
   clamp.set(false);
 }
 
+/**
+ * closes the wing clamps
+ */
 void Wings::clamp_close() {
   std::cout<< "CLAMP CLOSE FUNCTION\n" << fflush(stdout); // DEBUG PRINT, TO BE REMOVED
   clamp.set(true);

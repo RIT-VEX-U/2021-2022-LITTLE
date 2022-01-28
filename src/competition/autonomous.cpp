@@ -19,6 +19,9 @@ void match() {
   }
 }
 
+/**
+ * Skills autonomous program
+ */
 void skills() {
   // wait for big to be out of the way
   // wait(27, timeUnits::sec);
@@ -84,6 +87,9 @@ void skills() {
 
 }
 
+/**
+ * Qualifier autonomous to guarentee an auto win point
+ */
 void qual()
 {
   task odom_reporting([](){
@@ -100,6 +106,7 @@ void qual()
   odom.set_position({.x=129, .y=17, .rot=90});
 
   GenericAuto a;
+  // Drive forward slowly and deposit a ring in the goal, and flip out the claw mech
   a.add([](){return tank_drive.drive_to_point(129, 21.5, .15, 1);});
   a.add([](){
     claw.open();
@@ -110,6 +117,7 @@ void qual()
     lift.set_lift_height(Lift::DOWN);
     return true;
     });
+  // back up slightly, and drive forward and grab the goal, move it off the line
   a.add([](){return tank_drive.drive_to_point(129, 19, .2, 1, directionType::rev);});
   a.add([](){return tank_drive.drive_to_point(129, 24, .2, 1);});
   a.add([](){claw.close(); vexDelay(100); return true;});
