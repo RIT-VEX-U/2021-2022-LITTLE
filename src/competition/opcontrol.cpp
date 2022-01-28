@@ -12,7 +12,7 @@ void wings_undeploy() {
  */
 void OpControl::opcontrol() 
 {
-  Autonomous::autonomous();
+  // Autonomous::autonomous();
   // ========== INIT ==========
   while(imu.isCalibrating()); // do nothing while calibrating
   
@@ -44,7 +44,7 @@ void OpControl::opcontrol()
   { 
     // ========== DRIVING CONTROLS ==========
     
-    tank_drive.drive_tank(master.Axis3.position() / 100.0, master.Axis2.position() / 100.0);
+    tank_drive.drive_tank(master.Axis3.position() / 100.0, master.Axis2.position() / 100.0, true);
 
     // ========== MANIPULATING CONTROLS ==========
 

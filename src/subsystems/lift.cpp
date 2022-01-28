@@ -46,30 +46,30 @@ void Lift::control(bool up_btn, bool down_btn, bool claw_open, bool claw_close)
   // bool down_new_press = (down_btn && !down_btn_last);
   // bool claw_new_press = (claw_btn && !claw_btn_last);
 
-  double pos = get_sensor();
+  // double pos = get_sensor();
 
-  double min = (is_ring_collecting) ? LIFT_DRIVE : LIFT_DOWN ;
+  // double min = (is_ring_collecting) ? LIFT_DRIVE : LIFT_DOWN ;
 
-  if(up_btn && pos < LIFT_UP)
-  {
-    // lift_setpt += LIFT_SPEED * ctl_tmr.time(timeUnits::sec);
-    setpoint = pos + 20;
-    lift_motors.spin(directionType::fwd, 12, voltageUnits::volt);
-    hold = false;
-  } else if (down_btn && pos > min)
-  {
-    setpoint -= LIFT_SPEED * ctl_tmr.time(timeUnits::sec);
-    hold = true;
-  } else if (pos < min)
-  {
-    setpoint = min;
-    hold = true;
-  }else
-  {
-    hold = true;
-  }
+  // if(up_btn && pos < LIFT_UP)
+  // {
+  //   // lift_setpt += LIFT_SPEED * ctl_tmr.time(timeUnits::sec);
+  //   setpoint = pos + 20;
+  //   lift_motors.spin(directionType::fwd, 12, voltageUnits::volt);
+  //   hold = false;
+  // } else if (down_btn && pos > min)
+  // {
+  //   setpoint -= LIFT_SPEED * ctl_tmr.time(timeUnits::sec);
+  //   hold = true;
+  // } else if (pos < min)
+  // {
+  //   setpoint = min;
+  //   hold = true;
+  // }else
+  // {
+  //   hold = true;
+  // }
 
-  ctl_tmr.reset();
+  // ctl_tmr.reset();
   
   /*
 
@@ -106,6 +106,15 @@ void Lift::control(bool up_btn, bool down_btn, bool claw_open, bool claw_close)
 
   set_lift_height(current_lift_pos);
   */
+
+  hold = false;
+
+  if(up_btn)
+    lift_motors.spin(directionType::fwd, 12, volt);
+  else if(down_btn)
+    lift_motors.spin(directionType::rev, 12, volt);
+  else
+    lift_motors.stop();
 
   // Toggle the claw and reset the lift integral term to avoid snap-back
   if(claw_open)

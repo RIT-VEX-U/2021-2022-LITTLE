@@ -84,6 +84,47 @@ void skills() {
 
 }
 
+void qual()
+{
+  task odom_reporting([](){
+     while(true)
+    {
+      position_t pos = odom.get_position();
+      printf("X: %f; Y: %f; ROT: %f\n", pos.x, pos.y, pos.rot);
+      vexDelay(20);
+    }
+
+    return 0;
+  });
+
+  odom.set_position({.x=129, .y=17, .rot=90});
+
+  GenericAuto a;
+  a.add([](){return tank_drive.drive_to_point(129, 21.5, .15, 1);});
+  a.add([](){
+    claw.open();
+    wings.undeploy();
+    vexDelay(300);
+    lift.set_lift_height(Lift::DRIVING);
+    vexDelay(200);
+    lift.set_lift_height(Lift::DOWN);
+    return true;
+    });
+  a.add([](){return tank_drive.drive_to_point(129, 19, .2, 1, directionType::rev);});
+  a.add([](){return tank_drive.drive_to_point(129, 24, .2, 1);});
+  a.add([](){claw.close(); vexDelay(100); return true;});
+  a.add([](){return tank_drive.turn_to_heading(135, .5);});
+  
+  a.run(true);
+  
+  while(true){
+    vexDelay(50);
+  }
+
+
+
+}
+
 /**
  * Contains all the code run during autonomous.
  */ 
@@ -98,7 +139,8 @@ void Autonomous::autonomous()
   // drive_right.resetRotation();
   
   // match();
-  skills();
+  // skills();
+  qual();
 
 
   // ========== MAIN LOOP ==========
