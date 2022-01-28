@@ -66,61 +66,29 @@ void TankDrive::drive_arcade(double forward_back, double left_right, int power)
  * @param correction How much the robot should correct for being off angle
  * @param dir Whether the robot is travelling forwards or backwards
  */
-// bool TankDrive::drive_forward(double inches, double speed, double correction, directionType dir)
-// {
-//   static position_t pos_setpt;
-
-//   // Generate a point X inches forward of the current position, on first startup
-//   if (!func_initialized)
-//   {
-//     saved_pos = odometry->get_position();
-//     drive_pid.reset();
-
-//     // Use vector math to get an X and Y
-//     Vector current_pos({saved_pos.x , saved_pos.y});
-//     Vector delta_pos(deg2rad(saved_pos.rot), inches);
-//     Vector setpt_vec = current_pos + delta_pos;
-
-//     // Save the new X and Y values
-//     pos_setpt = {.x=setpt_vec.get_x(), .y=setpt_vec.get_y()};
-
-//     func_initialized = true;
-//   }
-
-//   // Call the drive_to_point with updated point values
-//   return drive_to_point(pos_setpt.x, pos_setpt.y, speed, correction, dir);
-// }
-
-/**
- * Stolen/adapted from 10/1/21 Core to make sure it's me messing stuff up
- */
-bool TankDrive::drive_forward(double inches, double percent_speed)
+bool TankDrive::drive_forward(double inches, double speed, double correction, directionType dir)
 {
-  // On the first run of the funciton, reset the motor position and PID
+  static position_t pos_setpt;
+
+  // Generate a point X inches forward of the current position, on first startup
   if (!func_initialized)
   {
-    left_motors.resetPosition();
+    saved_pos = odometry->get_position();
     drive_pid.reset();
 
-    drive_pid.set_limits(-fabs(percent_speed), fabs(percent_speed));
-    drive_pid.set_target(inches);
+    // Use vector math to get an X and Y
+    Vector current_pos({saved_pos.x , saved_pos.y});
+    Vector delta_pos(deg2rad(saved_pos.rot), inches);
+    Vector setpt_vec = current_pos + delta_pos;
+
+    // Save the new X and Y values
+    pos_setpt = {.x=setpt_vec.get_x(), .y=setpt_vec.get_y()};
 
     func_initialized = true;
   }
 
-  // Update PID loop and drive the robot based on it's output
-  drive_pid.update(left_motors.position(rotationUnits::rev) * PI * config.odom_wheel_diam);
-  drive_tank(drive_pid.get(), drive_pid.get());
-
-  // If the robot is at it's target, return true
-  if (drive_pid.is_on_target())
-  {
-    drive_tank(0, 0);
-    func_initialized = false;
-    return true;
-  }
-
-  return false;
+  // Call the drive_to_point with updated point values
+  return drive_to_point(pos_setpt.x, pos_setpt.y, speed, correction, dir);
 }
 
 /**
@@ -167,8 +135,11 @@ bool TankDrive::turn_degrees(double degrees, double percent_speed)
   *
   * Returns whether or not the robot has reached it's destination.
   */
-bool TankDrive::drive_to_point(double x, double y, double speed, double correction_speed, vex::directionType dir)
+bool TankDrive::drive_to_point(double x, double y, double speed, double correction_speed, vex::directionType dir, double max_accel)
 {
+
+  static timer accel_tmr;
+  static double lside_accel = 0, rside_accel = 0;
 
   if(!func_initialized)
   {
@@ -185,6 +156,10 @@ bool TankDrive::drive_to_point(double x, double y, double speed, double correcti
     correction_pid.set_target(0);
 
     // point_orientation_deg = atan2(y - odometry->get_position().y, x - odometry->get_position().x) * 180.0 / PI;
+
+    accel_tmr.reset();
+    lside_accel = 0;
+    rside_accel = 0;
 
     func_initialized = true;
   }
@@ -245,7 +220,7 @@ bool TankDrive::drive_to_point(double x, double y, double speed, double correcti
 
   // Disable correction when we're close enough to the point
   double correction = 0;
-  if(fabs(dist_left) > config.drive_correction_cutoff)
+  if(is_pure_pursuit || fabs(dist_left) > config.drive_correction_cutoff)
     correction = correction_pid.get();
 
   // Reverse the drive_pid output if we're going backwards
@@ -263,7 +238,36 @@ bool TankDrive::drive_to_point(double x, double y, double speed, double correcti
   lside = (lside > 1) ? 1 : (lside < -1) ? -1 : lside;
   rside = (rside > 1) ? 1 : (rside < -1) ? -1 : rside;
 
+  // static double last_lside = lside, last_rside = rside;
+  // bool decelerating = (fabs(lside) < fabs(last_lside)) && (fabs(rside) < fabs(last_rside));
+  // last_lside = lside;
+  // last_rside = rside;
+
+  // if(max_accel != 0 && !decelerating)
+  // {    
+  //   double accel_addition = max_accel * accel_tmr.time(timeUnits::sec);
+  //   accel_tmr.reset();
+    
+  //   lside_accel += (lside > 0 ? accel_addition : -accel_addition);
+  //   rside_accel += (rside > 0 ? accel_addition : -accel_addition);
+
+  //   printf("lside: %f, rside: %f, laccel: %f, raccel: %f\n", lside, rside, lside_accel, rside_accel);
+    
+  //   if ((lside < 0 && lside_accel > lside) || (lside > 0 && lside_accel < lside))
+  //     lside = lside_accel;
+  //   else
+  //     lside_accel = lside;
+    
+  //   if ((rside < 0 && rside_accel > rside) || (rside > 0 && rside_accel < rside))
+  //     rside = rside_accel;
+  //   else
+  //     rside_accel = rside;
+  // }
+
   drive_tank(lside, rside);
+
+  printf("dist: %f\n", dist_left);
+  fflush(stdout);
 
   // Check if the robot has reached it's destination
   if(drive_pid.is_on_target())
@@ -325,10 +329,21 @@ double TankDrive::modify_inputs(double input, int power)
 }
 
 bool TankDrive::pure_pursuit(std::vector<PurePursuit::hermite_point> path, double radius, double speed, double res) {
+  is_pure_pursuit = true;
   std::vector<Vector::point_t> smoothed_path = PurePursuit::smooth_path_hermite(path, res);
 
   Vector::point_t lookahead = PurePursuit::get_lookahead(smoothed_path, {odometry->get_position().x, odometry->get_position().y}, radius);
   //printf("%f\t%f\n", odometry->get_position().x, odometry->get_position().y); 
   //printf("%f\t%f\n", lookahead.x, lookahead.y);
-  return drive_to_point(lookahead.x, lookahead.y, speed, speed/2);
+  bool is_last_point = (path.back().x == lookahead.x) && (path.back().y == lookahead.y);
+
+  if(is_last_point)
+    is_pure_pursuit = false;
+
+  bool retval = drive_to_point(lookahead.x, lookahead.y, speed, 1);
+
+  if(is_last_point)
+    return retval;
+
+  return false;
 }
