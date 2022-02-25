@@ -78,14 +78,6 @@ rotation lift_sensor(PORT9);
 Lift lift(lift_motors, lift_sensor, claw, lift_pid);
 
 
-
-// === WINGS ===
-
-digital_out wing_deploy(Brain.ThreeWirePort.H);
-digital_out wing_deploy2(Brain.ThreeWirePort.F);
-digital_out wing_clamp(Brain.ThreeWirePort.G);
-Wings wings(wing_deploy, wing_deploy2, wing_clamp);
-
 // === SENSORS ===
 
 inertial imu(PORT2);
@@ -97,7 +89,6 @@ inertial imu(PORT2);
  */
 void vexcodeInit(void) {
   imu.calibrate();
-  wings.undeploy();
 
   // Nothing to initialize
 }
