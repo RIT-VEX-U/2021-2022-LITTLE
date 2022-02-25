@@ -11,7 +11,7 @@ class PID
 public:
   struct pid_config_t
   {
-    double p, i, d, f;
+    double p, i, d, f, k;
     double deadband, on_target_time;
   };
 
@@ -40,6 +40,8 @@ public:
    * Get the delta between the current sensor data and the target
    */
   double get_error();
+
+  double get_target();
 
   /**
    * Set the target for the PID loop, where the robot is trying to end up
