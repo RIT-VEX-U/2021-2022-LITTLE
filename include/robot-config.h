@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core.h"
-#include "subsystems/wings.h"
 #include "subsystems/lift.h"
 
 using namespace vex;
@@ -30,13 +29,6 @@ extern motor lift_right, lift_left;
 extern pneumatics claw;
 extern Lift lift;
 
-
-// === WINGS ===
-
-extern Wings wings;
-extern digital_out wing_deploy;
-extern digital_out wing_deploy2;
-extern digital_out wing_clamp;
 
 // === SENSORS ===
 

@@ -4,13 +4,13 @@
 
 void match() {
   odom.set_position({.x = 0, .y = 0, .rot = 270});
-  wings.deploy();
+  // wings.deploy();
 
   while(!tank_drive.drive_forward(33, 0.5, 1, directionType::rev)) {
     vexDelay(20);
   }
 
-  wings.clamp.set(false);
+  // wings.clamp.set(false);
 
   vexDelay(100);
 
@@ -110,7 +110,7 @@ void qual()
   a.add([](){return tank_drive.drive_to_point(129, 21.5, .15, 1);});
   a.add([](){
     claw.open();
-    wings.undeploy();
+    // wings.undeploy();
     vexDelay(300);
     lift.set_lift_height(Lift::DRIVING);
     vexDelay(200);
