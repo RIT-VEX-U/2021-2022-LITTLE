@@ -29,6 +29,8 @@ void OpControl::opcontrol()
 
     // ========== AUTOMATION ==========
 
+    // std::cout << "LEFT ENCODER:\t" << left_enc.position(rotationUnits::rev) << "\nRIGHT ENCODER:\t" << right_enc.position(rotationUnits::rev) << "\n\n";
+
     fflush(stdout);
     fflush(stderr);
 

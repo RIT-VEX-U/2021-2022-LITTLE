@@ -30,10 +30,17 @@ extern pneumatics claw;
 extern Lift lift;
 
 
+// === FORK ===
+
+extern motor fork_right, fork_left;
+
+
 // === SENSORS ===
 
 extern inertial imu;
 extern rotation lift_sensor;
+extern CustomEncoder left_enc, right_enc;
+
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.

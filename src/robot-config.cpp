@@ -10,15 +10,16 @@ controller master;
 
 
 // === DRIVE ===
-
-motor fr(PORT6, gearSetting::ratio6_1, true), mr(PORT7, gearSetting::ratio6_1, true), 
-br(PORT16, gearSetting::ratio6_1, true), tr(PORT17, gearSetting::ratio6_1);
+// TODO: check directions
+motor fr(PORT6, gearSetting::ratio6_1, true), mr(PORT19, gearSetting::ratio6_1, true), 
+br(PORT17, gearSetting::ratio6_1, true), tr(PORT20, gearSetting::ratio6_1);
 motor_group drive_right(fr, mr, br, tr);
 
-motor fl(PORT5, gearSetting::ratio6_1), ml(PORT4, gearSetting::ratio6_1), 
-bl(PORT15, gearSetting::ratio6_1), tl(PORT14, gearSetting::ratio6_1, true);
+motor fl(PORT5, gearSetting::ratio6_1), ml(PORT12, gearSetting::ratio6_1), 
+bl(PORT14, gearSetting::ratio6_1), tl(PORT11, gearSetting::ratio6_1, true);
 motor_group drive_left(fl, ml, bl, tl);
 
+// TODO: probably check all of this lol uh oh
 robot_specs_t tank_specs = {
   .robot_radius = 7.0,
   .odom_wheel_diam = 2.75,
@@ -61,8 +62,9 @@ TankDrive tank_drive(drive_left, drive_right, tank_specs, &odom);
 
 motor lift_right(PORT10, gearSetting::ratio18_1), lift_left(PORT1, gearSetting::ratio18_1, true);
 motor_group lift_motors(lift_left, lift_right);
-pneumatics claw(Brain.ThreeWirePort.E);
+pneumatics claw(Brain.ThreeWirePort.H);
 
+// TODO: these are probably fine, but test anyway
 // WARNING: DUMMY VALUES, TO BE REPLACED
 PID::pid_config_t lift_pid = {
   .p = 300,
@@ -78,9 +80,19 @@ rotation lift_sensor(PORT9);
 Lift lift(lift_motors, lift_sensor, claw, lift_pid);
 
 
+// === FORK ===
+
+motor fork_left(PORT16), fork_right(PORT17);
+
+
 // === SENSORS ===
 
+// TODO: steal Nemo's IMU (sorry, Nemo)
 inertial imu(PORT2);
+
+// NOTE: the VEX API assumes an encoder occupies two adjacent ports, always provide the "earlier" port
+CustomEncoder left_enc(Brain.ThreeWirePort.A, 2048);  // ports A & B
+CustomEncoder right_enc(Brain.ThreeWirePort.C, 2048); // ports C & D
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
