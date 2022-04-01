@@ -11,6 +11,10 @@ void OpControl::opcontrol()
   // Autonomous::autonomous();
   // ========== INIT ==========
   while(imu.isCalibrating()); // do nothing while calibrating
+
+  // ========== EVENT LISTENERS ==========
+  master.ButtonUp.pressed([]() { fork.lift(); });
+  master.ButtonDown.pressed([]() { fork.place(); });
   
   while(true)
   { 
@@ -29,7 +33,7 @@ void OpControl::opcontrol()
 
     // ========== AUTOMATION ==========
 
-    // std::cout << "LEFT ENCODER:\t" << left_enc.position(rotationUnits::rev) << "\nRIGHT ENCODER:\t" << right_enc.position(rotationUnits::rev) << "\n\n";
+    std::cout << "LEFT ENCODER:\t" << fork_left.position(rotationUnits::rev) << "\nRIGHT ENCODER:\t" << fork_right.position(rotationUnits::rev) << "\nBOTH:\t" << fork_motors.position(rotationUnits::rev) << "\n\n";
 
     fflush(stdout);
     fflush(stderr);

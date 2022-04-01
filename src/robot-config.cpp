@@ -82,7 +82,11 @@ Lift lift(lift_motors, lift_sensor, claw, lift_pid);
 
 // === FORK ===
 
-motor fork_left(PORT16), fork_right(PORT17);
+motor fork_left(PORT15, true), fork_right(PORT16);
+motor_group fork_motors(fork_left, fork_right);
+limit lim(Brain.ThreeWirePort.E);
+pneumatics mogo_lock1(Brain.ThreeWirePort.F), mogo_lock2(Brain.ThreeWirePort.G);
+Fork fork(fork_motors, mogo_lock1, mogo_lock2, lim);
 
 
 // === SENSORS ===

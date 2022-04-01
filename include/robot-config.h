@@ -2,6 +2,7 @@
 
 #include "core.h"
 #include "subsystems/lift.h"
+#include "subsystems/fork.h"
 
 using namespace vex;
 
@@ -33,6 +34,9 @@ extern Lift lift;
 // === FORK ===
 
 extern motor fork_right, fork_left;
+extern motor_group fork_motors;
+extern Fork fork;
+extern pneumatics mogo_lock1, mogo_lock2;
 
 
 // === SENSORS ===
@@ -40,6 +44,7 @@ extern motor fork_right, fork_left;
 extern inertial imu;
 extern rotation lift_sensor;
 extern CustomEncoder left_enc, right_enc;
+extern limit lim;
 
 
 /**
