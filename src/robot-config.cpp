@@ -21,7 +21,7 @@ motor_group drive_left(fl, ml, bl, tl);
 
 // TODO: probably check all of this lol uh oh
 robot_specs_t tank_specs = {
-  .robot_radius = 7.0,
+  .robot_radius = 7.5,
   .odom_wheel_diam = 2.75,
   .odom_gear_ratio = 1,
   .dist_between_wheels = 8.5,
@@ -29,31 +29,31 @@ robot_specs_t tank_specs = {
 
   // Driving PID
   .drive_pid={
-    .p = 0.7,
-    .i = 0,
-    .d = 0.00025, 
-    .f = 0,
-    .k = .1,
-    .deadband = 0.2,
+    .p = 0.1,
+    .i = 0.01,
+    .d = 0.01, 
+    // .f = 0,
+    // .k = .1,
+    .deadband = 1.5,
     .on_target_time = .1
   },
   // Turning PID
   .turn_pid={
-    .p = 0.08, 
-    .i = 0,
-    .d = 0.005, 
-    .f = 0,
-    .deadband = 2.0,
+    .p = 0.03, 
+    .i = 0.01,
+    .d = 0.002, 
+    // .f = 0,
+    .deadband = 5.0,
     .on_target_time = 0.1
   },
   // WARNING: DUMMY VALUES, TO BE REPLACED
   .correction_pid={
-    .p=0.02,
-    .d=0.002
+    .p=0.05,
+    .d=0.01
   }
 };
 
-OdometryTank odom(drive_left, drive_right, tank_specs, &imu, true); // just added the true arg today, did not get to test
+OdometryTank odom(left_enc, right_enc, tank_specs, &imu, true); // just added the true arg today, did not get to test
 
 TankDrive tank_drive(drive_left, drive_right, tank_specs, &odom);
 
