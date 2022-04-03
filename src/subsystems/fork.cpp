@@ -11,12 +11,17 @@ void Fork::lift() {
 }
 
 void Fork::place() {
-  while(fork_motors.position(rotationUnits::rev) < 0.92) {
+  while(fork_motors.position(rotationUnits::rev) < 0.95) {
     fork_motors.spin(directionType::fwd, 100, percentUnits::pct);
   }
-  stop();
+  hold();
+}
+
+void Fork::hold() {
+  fork_motors.stop(brakeType::hold);
+  // fork_motors.spin(directionType::fwd, 0.5, percentUnits::pct);
 }
 
 void Fork::stop() {
-  fork_motors.stop();
+  fork_motors.stop(brakeType::brake);
 }

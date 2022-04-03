@@ -10,6 +10,7 @@ class Fork {
 
   void lift();
   void place();
+  void hold();
   void stop();
 
   private:
