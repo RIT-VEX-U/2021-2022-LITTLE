@@ -44,7 +44,7 @@ extern pneumatics mogo_lock1, mogo_lock2;
 extern inertial imu;
 extern rotation lift_sensor;
 extern CustomEncoder left_enc, right_enc;
-extern limit lim;
+extern distance dist;
 
 
 /**

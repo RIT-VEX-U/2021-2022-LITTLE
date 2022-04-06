@@ -29,7 +29,8 @@ void OpControl::opcontrol()
 
   // ========== EVENT LISTENERS ==========
   master.ButtonUp.pressed([]() { fork.lift(); });
-  master.ButtonDown.pressed([]() { fork.place(); });
+  master.ButtonDown.pressed([]() { fork.down(); });
+  master.ButtonA.pressed([]() { fork.toggle_clamps(); });
   
   while(true)
   { 

@@ -10,7 +10,7 @@ controller master;
 
 
 // === DRIVE ===
-// TODO: check directions
+
 motor fr(PORT6, gearSetting::ratio6_1, true), mr(PORT19, gearSetting::ratio6_1, true), 
 br(PORT17, gearSetting::ratio6_1, true), tr(PORT20, gearSetting::ratio6_1);
 motor_group drive_right(fr, mr, br, tr);
@@ -84,9 +84,9 @@ Lift lift(lift_motors, lift_sensor, claw, lift_pid);
 
 motor fork_left(PORT15, true), fork_right(PORT16);
 motor_group fork_motors(fork_left, fork_right);
-limit lim(Brain.ThreeWirePort.E);
+distance dist(PORT3);
 pneumatics mogo_lock1(Brain.ThreeWirePort.F), mogo_lock2(Brain.ThreeWirePort.G);
-Fork fork(fork_motors, mogo_lock1, mogo_lock2, lim);
+Fork fork(fork_motors, mogo_lock1, mogo_lock2, dist);
 
 
 // === SENSORS ===

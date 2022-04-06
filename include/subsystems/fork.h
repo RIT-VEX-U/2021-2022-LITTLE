@@ -6,10 +6,11 @@ using namespace vex;
 
 class Fork {
   public:
-  Fork(motor_group &fork_motors, pneumatics &mogo_lock1, pneumatics &mogo_lock2, limit &lim);
+  Fork(motor_group &fork_motors, pneumatics &mogo_lock1, pneumatics &mogo_lock2, distance &dist);
 
   void lift();
-  void place();
+  void down();
+  void toggle_clamps();
   void hold();
   void stop();
 
@@ -17,5 +18,8 @@ class Fork {
   motor_group &fork_motors;
   pneumatics  &mogo_lock1;
   pneumatics  &mogo_lock2;
-  limit       &lim;
+  distance       &dist;
+
+  void open_clamps();
+  void close_clamps();
 };
