@@ -6,7 +6,7 @@ using namespace vex;
 
 class Fork {
   public:
-  Fork(motor_group &fork_motors, pneumatics &mogo_lock1, pneumatics &mogo_lock2, distance &dist);
+  Fork(motor_group &fork_motors, pneumatics &mogo_locks, distance &dist);
 
   void lift();
   void down();
@@ -14,12 +14,16 @@ class Fork {
   void hold();
   void stop();
 
+  enum FORK_STATE {
+    UP,
+    DOWN
+  };
+
   private:
   motor_group &fork_motors;
-  pneumatics  &mogo_lock1;
-  pneumatics  &mogo_lock2;
-  distance       &dist;
+  pneumatics  &mogo_locks;
+  distance    &dist;
+  FORK_STATE  current_state;
 
-  void open_clamps();
-  void close_clamps();
+  FORK_STATE get_state();
 };

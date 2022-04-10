@@ -85,8 +85,8 @@ Lift lift(lift_motors, lift_sensor, claw, lift_pid);
 motor fork_left(PORT15, true), fork_right(PORT16);
 motor_group fork_motors(fork_left, fork_right);
 distance dist(PORT3);
-pneumatics mogo_lock1(Brain.ThreeWirePort.F), mogo_lock2(Brain.ThreeWirePort.G);
-Fork fork(fork_motors, mogo_lock1, mogo_lock2, dist);
+pneumatics mogo_locks(Brain.ThreeWirePort.G);
+Fork fork(fork_motors, mogo_locks, dist);
 
 
 // === SENSORS ===
@@ -97,6 +97,8 @@ inertial imu(PORT2);
 // NOTE: the VEX API assumes an encoder occupies two adjacent ports, always provide the "earlier" port
 CustomEncoder left_enc(Brain.ThreeWirePort.A, 2048);  // ports A & B
 CustomEncoder right_enc(Brain.ThreeWirePort.C, 2048); // ports C & D
+
+// NOTE: Vision sensor is declared and initialized in vision_config.h
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
