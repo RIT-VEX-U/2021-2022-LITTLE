@@ -27,11 +27,16 @@ void OpControl::opcontrol()
   // Autonomous::autonomous();
   // ========== INIT ==========
   while(imu.isCalibrating()); // do nothing while calibrating
+  fork.open_clamps();
 
   // ========== EVENT LISTENERS ==========
   master.ButtonUp.pressed([]() { fork.lift(); });
   master.ButtonDown.pressed([]() { fork.down(); });
-  master.ButtonA.pressed([]() { fork.toggle_clamps(); });
+  // master.ButtonA.pressed([]() { fork.toggle_clamps(); });
+
+  master.ButtonA.pressed([]() {
+    thread([]() { fork.release(); });
+  });
   
   while(true)
   { 

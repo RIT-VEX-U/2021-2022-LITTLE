@@ -40,8 +40,7 @@ bool drive_to_goal(double speed, bool (*end_condition) (void), GoalType color) {
   static PID pid(pid_cfg);
 
   pid.update(vision_x_dist(color));
-  // NOTE: reversed from BIG bc LITTLE's vision sensor is one the back
-  tank_drive.drive_tank(-speed + pid.get(), -speed - pid.get());
+  tank_drive.drive_tank(-speed - pid.get(), -speed + pid.get());
 
   if(end_condition())
   {
@@ -58,8 +57,8 @@ void drive_with_autoaim(double left, double right, int power, GoalType color) {
   };
   static PID pid(pid_cfg);
 
+  printf("automation.cpp: X COORD\t%f\n", vision_x_dist(color));
+
   pid.update(vision_x_dist(color));
-  // NOTE: reversed from BIG bc LITTLE's vision sensor is one the back
-  tank_drive.drive_tank(left + pid.get() - .5, right - pid.get() - .5, power);
-  printf("automation.cpp: COLOR %u\tPID %f\n", color, pid.get());
+  tank_drive.drive_tank(left - pid.get() - .5, right + pid.get() - .5, power);
 }

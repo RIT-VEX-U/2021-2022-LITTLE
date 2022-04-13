@@ -8,22 +8,26 @@ class Fork {
   public:
   Fork(motor_group &fork_motors, pneumatics &mogo_locks, distance &dist);
 
-  void lift();
-  void down();
-  void toggle_clamps();
-  void hold();
-  void stop();
-
   enum FORK_STATE {
     UP,
     DOWN
   };
+
+  void lift();
+  void down();
+  void release();
+  void toggle_clamps();
+  void open_clamps();
+  void hold();
+  void stop();
+  FORK_STATE get_state();
 
   private:
   motor_group &fork_motors;
   pneumatics  &mogo_locks;
   distance    &dist;
   FORK_STATE  current_state;
+  bool        release_init;
 
-  FORK_STATE get_state();
+  static int release_helper(void *dist_p);
 };

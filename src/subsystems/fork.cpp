@@ -3,6 +3,7 @@
 Fork::Fork(motor_group &fork_motors, pneumatics &mogo_locks, distance &dist):
   fork_motors(fork_motors), mogo_locks(mogo_locks), dist(dist) {
     current_state = UP;
+    release_init = true;
   }
 
 
@@ -20,17 +21,27 @@ void Fork::lift() {
 }
 
 void Fork::down() {
-  while(fork_motors.position(rotationUnits::rev) < 0.97) {
+  while(fork_motors.position(rotationUnits::rev) < 0.95) {
     fork_motors.spin(directionType::fwd, 100, percentUnits::pct);
   }
   current_state = DOWN;
   hold();
 }
 
+void Fork::release() {
+  mogo_locks.close();
+  while(dist.objectDistance(distanceUnits::mm) < 100) {}
+  mogo_locks.open();
+}
+
 void Fork::toggle_clamps() {
   if(current_state == DOWN) {
     mogo_locks.set(mogo_locks.value() == 0);
   }
+}
+
+void Fork::open_clamps() {
+  mogo_locks.open();
 }
 
 void Fork::hold() {
