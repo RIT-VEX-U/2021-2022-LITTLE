@@ -107,6 +107,5 @@ CustomEncoder right_enc(Brain.ThreeWirePort.C, 2048); // ports C & D
  */
 void vexcodeInit(void) {
   imu.calibrate();
-
-  // Nothing to initialize
+  fork.open_clamps();
 }

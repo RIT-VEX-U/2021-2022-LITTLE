@@ -18,10 +18,10 @@ void TankDrive::reset_auto()
 /**
  * Stops rotation of all the motors using their "brake mode"
  */
-void TankDrive::stop()
+void TankDrive::stop(brakeType brake)
 {
-  left_motors.stop();
-  right_motors.stop();
+  left_motors.stop(brake);
+  right_motors.stop(brake);
 }
 
 /**

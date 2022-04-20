@@ -25,7 +25,7 @@ public:
   /**
    * Stops rotation of all the motors using their "brake mode"
    */
-  void stop();
+  void stop(brakeType brake = brakeType::coast);
 
   /**
    * Drive the robot using differential style controls. left_motors controls the left motors,

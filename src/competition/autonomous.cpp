@@ -1,12 +1,54 @@
 #include "competition/autonomous.h"
 #include "robot-config.h"
+#include "automation.h"
 #include <iostream>
+
+#define OPP_ZONE 55
+
+/**
+ * Currently aims for the goal immediately in front of the robot
+ */
+void rush_auto() {
+  odom.set_position({
+    .x = 0, 
+    .y = 0,
+    .rot = 270
+  }); // TODO: find starting position
+
+  GenericAuto rush;
+
+  rush.add([](){ 
+    fork.down(); 
+    fork.open_clamps();
+    return true; 
+  });
+
+  // driving to the goal
+  // TODO: have it stop when distance sensor detect goal
+  rush.add([](){ 
+    while(!drive_to_goal(1.0, [](){ return fork.has_goal(); }) && odom.get_position().y < OPP_ZONE - 5) {
+      vexDelay(20);
+    }
+    tank_drive.stop(brakeType::brake);
+    return true;
+  });
+
+  rush.add_delay(500);
+
+  // driving back to home zone
+  rush.add([](){ return tank_drive.drive_to_point(0, 0, 1.0, 0.0); });
+
+  // pull goal into robot
+  // rush.add([](){ fork.lift(); return true; });
+
+  rush.run(true);
+}
 
 void match() {
   odom.set_position({.x = 0, .y = 0, .rot = 270});
   // wings.deploy();
 
-  while(!tank_drive.drive_forward(33, 0.5, 1, directionType::rev)) {
+  while(!tank_drive.drive_forward(-33, 0.5, 1, directionType::rev)) {
     vexDelay(20);
   }
 
@@ -148,8 +190,7 @@ void Autonomous::autonomous()
   
   // match();
   // skills();
-  qual();
-
+  rush_auto();
 
   // ========== MAIN LOOP ==========
   // while(true)

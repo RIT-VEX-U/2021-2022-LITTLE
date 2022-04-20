@@ -34,8 +34,8 @@ double vision_x_dist(GoalType color) {
 bool drive_to_goal(double speed, bool (*end_condition) (void), GoalType color) {
   // PID tuning only used here
   static PID::pid_config_t pid_cfg = {
-    .p = .004,
-    .d = .004
+    .p = .003,
+    .d = 0
   };
   static PID pid(pid_cfg);
 
@@ -56,8 +56,6 @@ void drive_with_autoaim(double left, double right, int power, GoalType color) {
     .p = .004
   };
   static PID pid(pid_cfg);
-
-  printf("automation.cpp: X COORD\t%f\n", vision_x_dist(color));
 
   pid.update(vision_x_dist(color));
   tank_drive.drive_tank(left - pid.get() - .5, right + pid.get() - .5, power);

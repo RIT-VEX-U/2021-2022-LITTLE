@@ -20,6 +20,7 @@ class Fork {
   void open_clamps();
   void hold();
   void stop();
+  bool has_goal();
   FORK_STATE get_state();
 
   private:

@@ -53,6 +53,10 @@ void Fork::stop() {
   fork_motors.stop(brakeType::brake);
 }
 
+bool Fork::has_goal() {
+  return dist.objectDistance(distanceUnits::mm) < 100;
+}
+
 Fork::FORK_STATE Fork::get_state() {
   return current_state;
 }
