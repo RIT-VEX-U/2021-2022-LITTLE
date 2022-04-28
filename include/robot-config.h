@@ -45,6 +45,7 @@ extern inertial imu;
 extern rotation lift_sensor;
 extern CustomEncoder left_enc, right_enc;
 extern distance dist;
+extern pot fork_pot;
 
 // NOTE: Vision sensor is declared and initialized in vision_config.h
 

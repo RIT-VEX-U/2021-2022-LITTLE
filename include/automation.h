@@ -12,3 +12,9 @@ enum GoalType {
 
 bool drive_to_goal(double speed, bool (*end_condition) (void), GoalType color=ANY);
 void drive_with_autoaim(double left, double right, int power, GoalType color=ANY);
+bool sees_goal(GoalType color=ANY);
+
+
+///// HELPERS & DEBUGGERS //////
+
+int largest_area();

@@ -60,3 +60,46 @@ void drive_with_autoaim(double left, double right, int power, GoalType color) {
   pid.update(vision_x_dist(color));
   tank_drive.drive_tank(left - pid.get() - .5, right + pid.get() - .5, power);
 }
+
+bool sees_goal(GoalType color) {
+  switch(color) {
+    case RED:
+      vis.takeSnapshot(RED_GOAL);
+      break;
+    case BLUE:
+      vis.takeSnapshot(BLUE_GOAL);
+      break;
+    case YELLOW:
+      vis.takeSnapshot(YELLOW_GOAL);
+      break;
+    case ANY:
+    default:
+      vis.takeSnapshot(0,10);
+  }
+
+  vex::vision::object largest = vis.largestObject;
+
+  return largest.height * largest.width > 800;
+}
+
+void center_on_goal(GoalType color) {
+  
+}
+
+
+////// HELPERS & DEBUGGERS //////
+
+int largest_area() {
+  vis.takeSnapshot(0, 10);
+  vex::vision::object largest = vis.largestObject;
+  return largest.height*largest.width;
+}
+
+/**
+ * Used at the start of auto to determine if a goal is a
+ */
+// bool goal_available(GoalType color) {
+//   vis.takeSnapshot(0, 10);
+//   vex::vision::object largest = vis.largestObject;
+//   largest.
+// }

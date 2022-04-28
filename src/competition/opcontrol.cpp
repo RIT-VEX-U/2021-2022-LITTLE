@@ -50,7 +50,7 @@ void OpControl::opcontrol()
       drive_with_autoaim(left_analog, right_analog, 2, GoalType::RED);
     }
     else {
-      tank_drive.drive_tank(left_analog, right_analog, 2, true);
+      tank_drive.drive_tank(left_analog, right_analog, 1, true);
     }
 
     // ========== MANIPULATING CONTROLS ==========
@@ -69,6 +69,7 @@ void OpControl::opcontrol()
     // std::cout << "LEFT ENCODER:\t" << fork_left.position(rotationUnits::rev) << "\nRIGHT ENCODER:\t" << fork_right.position(rotationUnits::rev) << "\nBOTH:\t" << fork_motors.position(rotationUnits::rev) << "\n\n";
     // printf("raw: %f, rev: %f\n", left_enc.rotation(rotationUnits::raw), left_enc.rotation(rotationUnits::rev));
     // printf("X: %f, Y: %f, Rot: %f\n", odom.get_position().x, odom.get_position().y, odom.get_position().rot);
+    printf("opcontrol.cpp: FORK: %f\n", fork.get_pot());
     
     fflush(stdout);
     fflush(stderr);

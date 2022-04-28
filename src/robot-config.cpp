@@ -84,9 +84,10 @@ Lift lift(lift_motors, lift_sensor, claw, lift_pid);
 
 motor fork_left(PORT15, true), fork_right(PORT16);
 motor_group fork_motors(fork_left, fork_right);
-distance dist(PORT3);
+distance dist(PORT18);
 pneumatics mogo_locks(Brain.ThreeWirePort.G);
-Fork fork(fork_motors, mogo_locks, dist);
+pot fork_pot(Brain.ThreeWirePort.E);
+Fork fork(fork_motors, mogo_locks, dist, fork_pot);
 
 
 // === SENSORS ===

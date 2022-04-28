@@ -1,7 +1,7 @@
 #include "subsystems/fork.h"
 
-Fork::Fork(motor_group &fork_motors, pneumatics &mogo_locks, distance &dist):
-  fork_motors(fork_motors), mogo_locks(mogo_locks), dist(dist) {
+Fork::Fork(motor_group &fork_motors, pneumatics &mogo_locks, distance &dist, pot &fork_pot):
+  fork_motors(fork_motors), mogo_locks(mogo_locks), dist(dist), fork_pot(fork_pot) {
     current_state = UP;
     release_init = true;
   }
@@ -13,7 +13,7 @@ void Fork::lift() {
   // ensure clamps are down
   mogo_locks.open();
 
-  while(fork_motors.position(rotationUnits::rev) > 0) {
+  while(fork_pot.angle(rotationUnits::rev) > 0.173) {
     fork_motors.spin(directionType::rev, 100, percentUnits::pct);
   }
   current_state = UP;
@@ -21,7 +21,7 @@ void Fork::lift() {
 }
 
 void Fork::down() {
-  while(fork_motors.position(rotationUnits::rev) < 0.95) {
+  while(fork_pot.angle(rotationUnits::rev) < 0.692) {
     fork_motors.spin(directionType::fwd, 100, percentUnits::pct);
   }
   current_state = DOWN;
@@ -59,4 +59,11 @@ bool Fork::has_goal() {
 
 Fork::FORK_STATE Fork::get_state() {
   return current_state;
+}
+
+
+////// HELPERS & DEBUGGERS //////
+
+double Fork::get_pot() {
+  return fork_pot.angle(rotationUnits::rev);
 }
