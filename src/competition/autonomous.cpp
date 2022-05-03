@@ -29,15 +29,19 @@ void rush_auto() {
 
   // init stuff
   rush.add([](){ 
-    fork.down(); 
     fork.open_clamps();
     return true; 
+  });
+
+  rush.add_async([](){ 
+    fork.down();
+    return true;
   });
 
   // driving to the goal
   rush.add([](){ 
     // TODO: clean this up
-    while(!drive_to_goal(1.0, [](){ return fork.has_goal(); }, BLUE/*, YELLOW*/) && odom.get_position().y < OPP_ZONE - DISCREPANCY) {  // please don't ask me where this number comes from
+    while(!drive_to_goal(1.0, [](){ return fork.has_goal(); }, YELLOW) && odom.get_position().y < OPP_ZONE - DISCREPANCY) {  // please don't ask me where this number comes from
       vexDelay(20);
     }
     tank_drive.stop(brakeType::brake);
@@ -47,70 +51,75 @@ void rush_auto() {
   // delay to make sure clamps are secure
   rush.add_delay(500);
 
-  // rush.add([](){ 
-  //   if(!fork.has_goal()) {
-  //     // turn away from opp zone
-  //     tank_drive.turn_to_heading(180, 0.5);
+  rush.add([](){
+    while(!tank_drive.drive_to_point(odom.get_position().x, 48 - DISCREPANCY, 1.0, 0.0)) {
+      vexDelay(20);
+    }
 
-  //     // searching for center goal
-  //     while(!tank_drive.turn_degrees(5, 0.15) && !sees_goal(BLUE/*YELLOW*/)) {
-  //       vexDelay(20);
-  //     }
+    fork.lift();
+    return true;
+  });
 
-  //     if(sees_goal(BLUE /*YELLOW*/)) {
-  //       // TODO: center the robot around the goal
+  // turn toward center goal
+  // rush.add([](){
+  //   double dist_from_mid = odom.get_position().y - (MID_LINE - DISCREPANCY);
+    
+  //   fflush(stdout);
 
-  //       while(!drive_to_goal(1.0, [](){ return fork.has_goal(); }, BLUE/*YELLOW*/) && odom.get_position().y > 48) {
-  //         vexDelay(20);
-  //       }
-  //     }
+  //   double head = 165 + (dist_from_mid);
+
+  //   fork.lift();
+
+  //   while(!tank_drive.turn_to_heading(head, 1.0)) {
+  //     vexDelay(20);
   //   }
+
   //   return true;
   // });
 
-  // driving back to home zone
-  // rush.add([](){ return tank_drive.drive_to_point(108, 20, 1.0, 0.0); });
-
+  // drive to center goal
   rush.add([](){
-    double dist_from_mid = odom.get_position().y - (MID_LINE - DISCREPANCY);
-    
-    fflush(stdout);
-
-    double head = 165 + (dist_from_mid);
-
-    fork.lift();
-
-    while(!tank_drive.turn_to_heading(head, 1.0)) {
+    while(!tank_drive.drive_to_point(83, 59, 0.5, 0.5)) {
       vexDelay(20);
     }
 
-    // while(true) {
-    //   printf("ODOM X,Y: %f,%f\n", odom.get_position().x, odom.get_position().y);
-    // }
-
-    return true;
-  });
-
-  rush.add([](){
-    while(!tank_drive.drive_to_point(82, 69, 0.5, 0.5)) {
+    while(!tank_drive.drive_to_point(86, 64, 0.2, 0.1)) {
       vexDelay(20);
     }
 
     return true;
   });
 
-  rush.add_delay(2000);
-
+  // grab center goal
+  rush.add_delay(500);
   rush.add([](){
     claw.open();
     return true;
   });
 
-  rush.add_delay(2000);
+
+  rush.add_delay(500);
+  rush.add([](){
+    while(!tank_drive.turn_to_heading(180, 0.5)) {
+      vexDelay(20);
+    }
+    return true;
+  });
 
   rush.add([](){
     lift.set_lift_height(Lift::DRIVING);
-    while(!tank_drive.drive_to_point(20, 20, 0.5, 0.5)) {
+    lift.set_lift_height(Lift::DOWN);
+    return true;
+  });
+
+  // wait for 24
+  rush.add_delay(8000);
+
+  // drive back to home zone
+  rush.add_delay(500);
+  rush.add([](){
+    lift.set_lift_height(Lift::DRIVING);
+    while(!tank_drive.drive_to_point(25, 25, 0.5, 0.5)) {
       vexDelay(20);
     }
     return true;
@@ -259,18 +268,8 @@ void Autonomous::autonomous()
 
   // imu.calibrate(); - done in init
   while(imu.isCalibrating()) {}
-
-  // drive_left.resetRotation();
-  // drive_right.resetRotation();
   
   // match();
   // skills();
   rush_auto();
-
-  // ========== MAIN LOOP ==========
-  // while(true)
-  // {
-
-  // }
-
 }

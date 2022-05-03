@@ -34,16 +34,8 @@ void TankDrive::drive_tank(double left, double right, int power, bool isdriver)
 {
   left = modify_inputs(left, power);
   right = modify_inputs(right, power);
-
-  if(isdriver == false)
-  {
-    left_motors.spin(directionType::fwd, left * 12, voltageUnits::volt);
-    right_motors.spin(directionType::fwd, right * 12, voltageUnits::volt);
-  }else
-  {
-    left_motors.spin(directionType::fwd, left * 100.0, percentUnits::pct);
-    right_motors.spin(directionType::fwd, right * 100.0, percentUnits::pct);
-  }
+  left_motors.spin(directionType::fwd, left * 12, voltageUnits::volt);
+  right_motors.spin(directionType::fwd, right * 12, voltageUnits::volt);
 }
 
 /**
@@ -263,7 +255,7 @@ bool TankDrive::drive_to_point(double x, double y, double speed, double correcti
 
   drive_tank(lside, rside);
 
-  printf("dist: %f\n", sign * -1 * dist_left);
+  // printf("dist: %f\n", sign * -1 * dist_left);
   fflush(stdout);
 
   // Check if the robot has reached it's destination

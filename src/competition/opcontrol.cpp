@@ -24,7 +24,6 @@ void tuning(bool btn)
  */
 void OpControl::opcontrol() 
 {
-  // Autonomous::autonomous();
   // ========== INIT ==========
   while(imu.isCalibrating()); // do nothing while calibrating
   fork.open_clamps();
@@ -32,7 +31,6 @@ void OpControl::opcontrol()
   // ========== EVENT LISTENERS ==========
   master.ButtonUp.pressed([]() { fork.lift(); });
   master.ButtonDown.pressed([]() { fork.down(); });
-  // master.ButtonA.pressed([]() { fork.toggle_clamps(); });
 
   master.ButtonA.pressed([]() {
     thread([]() { fork.release(); });
@@ -47,7 +45,7 @@ void OpControl::opcontrol()
     bool autoaim = master.ButtonL2.pressing() && master.ButtonR2.pressing();
 
     if(autoaim) {
-      drive_with_autoaim(left_analog, right_analog, 2, GoalType::RED);
+      drive_with_autoaim(left_analog, right_analog, 1);
     }
     else {
       tank_drive.drive_tank(left_analog, right_analog, 1, true);
@@ -56,23 +54,13 @@ void OpControl::opcontrol()
     // ========== MANIPULATING CONTROLS ==========
     
     if(!autoaim) {
-      lift.control(master.ButtonR1.pressing(), master.ButtonR2.pressing(), master.ButtonL2.pressing(), master.ButtonL1.pressing());
+      lift.control(master.ButtonR1.pressing(), master.ButtonR2.pressing(), master.ButtonL1.pressing(), master.ButtonL2.pressing());
     }
-    // lift.manual_control(master.ButtonR1.pressing(), master.ButtonR2.pressing(), 
-    //   master.ButtonL2.pressing(), master.ButtonL1.pressing());
     
     // ========== SECONDARY REMOTE ==========
 
 
     // ========== AUTOMATION ==========
-
-    // std::cout << "LEFT ENCODER:\t" << fork_left.position(rotationUnits::rev) << "\nRIGHT ENCODER:\t" << fork_right.position(rotationUnits::rev) << "\nBOTH:\t" << fork_motors.position(rotationUnits::rev) << "\n\n";
-    // printf("raw: %f, rev: %f\n", left_enc.rotation(rotationUnits::raw), left_enc.rotation(rotationUnits::rev));
-    // printf("X: %f, Y: %f, Rot: %f\n", odom.get_position().x, odom.get_position().y, odom.get_position().rot);
-    printf("opcontrol.cpp: FORK: %f\n", fork.get_pot());
-    
-    fflush(stdout);
-    fflush(stderr);
 
     // Wait 20 milliseconds for control loops to calculate time correctly
     vexDelay(20); 
