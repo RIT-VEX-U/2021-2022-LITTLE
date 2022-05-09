@@ -44,6 +44,10 @@ void Fork::open_clamps() {
   mogo_locks.open();
 }
 
+void Fork::close_clamps() {
+  mogo_locks.close();
+}
+
 void Fork::hold() {
   fork_motors.stop(brakeType::hold);
   // fork_motors.spin(directionType::fwd, 0.5, percentUnits::pct);
@@ -55,6 +59,10 @@ void Fork::stop() {
 
 bool Fork::has_goal() {
   return dist.objectDistance(distanceUnits::mm) < 100;
+}
+
+bool Fork::is_down() {
+  return fork_pot.angle(rotationUnits::rev) >= 0.692;
 }
 
 Fork::FORK_STATE Fork::get_state() {

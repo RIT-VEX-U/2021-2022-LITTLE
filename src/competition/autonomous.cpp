@@ -1,11 +1,10 @@
 #include "competition/autonomous.h"
 #include "robot-config.h"
 #include "automation.h"
-#include <iostream>
 
-#define OPP_ZONE 96
+#define OPP_ZONE 68//96 // the distance to the opposing team's home zone,
 #define DISCREPANCY 25
-#define MID_LINE 72
+// #define MID_LINE 72
 
 const position_t robot_start = {
   .x = 108,
@@ -13,11 +12,7 @@ const position_t robot_start = {
   .rot = 270
 };
 
-const position_t center_goal_start = {
-  .x = 72,
-  .y = 72,
-  .rot = 0
-};
+bool fork_has_goal() { return fork.has_goal(); }
 
 /**
  * Currently aims for the goal immediately in front of the robot
@@ -33,6 +28,7 @@ void rush_auto() {
     return true; 
   });
 
+  // bring the fork down while driving forward
   rush.add_async([](){ 
     fork.down();
     return true;
@@ -40,50 +36,50 @@ void rush_auto() {
 
   // driving to the goal
   rush.add([](){ 
-    // TODO: clean this up
-    while(!drive_to_goal(1.0, [](){ return fork.has_goal(); }, YELLOW) && odom.get_position().y < OPP_ZONE - DISCREPANCY) {  // please don't ask me where this number comes from
+    // stop either when the goal is in the fork or the robot is about to cross into the other home zone
+    while(!drive_to_goal(1.0, fork_has_goal, YELLOW) && odom.get_position().y < OPP_ZONE - DISCREPANCY) {
       vexDelay(20);
     }
-    tank_drive.stop(brakeType::brake);
+    printf("autonomous.cpp: ODOM Y: %f\n", odom.get_position().y);
+    tank_drive.stop(brakeType::brake);  // don't let the robot roll into the other home zone
+
+    if(odom.get_position().x >= OPP_ZONE - DISCREPANCY) {
+      tank_drive.drive_tank(0.5, 0.5);
+      fork.open_clamps();
+      tank_drive.stop();
+    }
     return true;
   });
 
   // delay to make sure clamps are secure
   rush.add_delay(500);
 
+  
   rush.add([](){
     while(!tank_drive.drive_to_point(odom.get_position().x, 48 - DISCREPANCY, 1.0, 0.0)) {
       vexDelay(20);
     }
 
+    return true;
+  });
+
+  // let the robot settle before lifting mogo
+  rush.add_delay(500);
+
+  rush.add([]() {
     fork.lift();
     return true;
   });
 
-  // turn toward center goal
-  // rush.add([](){
-  //   double dist_from_mid = odom.get_position().y - (MID_LINE - DISCREPANCY);
-    
-  //   fflush(stdout);
-
-  //   double head = 165 + (dist_from_mid);
-
-  //   fork.lift();
-
-  //   while(!tank_drive.turn_to_heading(head, 1.0)) {
-  //     vexDelay(20);
-  //   }
-
-  //   return true;
-  // });
-
   // drive to center goal
   rush.add([](){
-    while(!tank_drive.drive_to_point(83, 59, 0.5, 0.5)) {
+    claw.close();
+
+    while(!tank_drive.drive_to_point(85, 63, 0.5, 0.5)) {
       vexDelay(20);
     }
 
-    while(!tank_drive.drive_to_point(86, 64, 0.2, 0.1)) {
+    while(!tank_drive.drive_to_point(88, 68, 0.2, 0.1)) {
       vexDelay(20);
     }
 
@@ -113,7 +109,7 @@ void rush_auto() {
   });
 
   // wait for 24
-  rush.add_delay(8000);
+  rush.add_delay(12000);
 
   // drive back to home zone
   rush.add_delay(500);
@@ -122,6 +118,11 @@ void rush_auto() {
     while(!tank_drive.drive_to_point(25, 25, 0.5, 0.5)) {
       vexDelay(20);
     }
+    return true;
+  });
+
+  rush.add([](){
+    fork.close_clamps();
     return true;
   });
 

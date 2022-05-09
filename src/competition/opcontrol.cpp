@@ -30,7 +30,19 @@ void OpControl::opcontrol()
 
   // ========== EVENT LISTENERS ==========
   master.ButtonUp.pressed([]() { fork.lift(); });
-  master.ButtonDown.pressed([]() { fork.down(); });
+  master.ButtonDown.pressed([]() { 
+    thread down_t = thread([](){ 
+      while(fork_pot.angle(rotationUnits::rev) < 0.692) {
+        fork_motors.spin(directionType::fwd, 100, percentUnits::pct);
+      }
+      fork.hold();
+     });
+    vexDelay(1000);
+    if(!fork.is_down()) {
+      down_t.interrupt();
+      fork.lift();
+    }
+  });
 
   master.ButtonA.pressed([]() {
     thread([]() { fork.release(); });

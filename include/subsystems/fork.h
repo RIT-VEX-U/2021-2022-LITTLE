@@ -15,12 +15,15 @@ class Fork {
 
   void lift();
   void down();
+  void down_with_wait();
   void release();
   void toggle_clamps();
   void open_clamps();
+  void close_clamps();
   void hold();
   void stop();
   bool has_goal();
+  bool is_down();
   FORK_STATE get_state();
 
   ////// HELPERS & DEBUGGERS //////
