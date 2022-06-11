@@ -11,16 +11,17 @@ controller master;
 
 // === DRIVE ===
 
-motor fr(PORT6, gearSetting::ratio6_1, true), mr(PORT7, gearSetting::ratio6_1, true), 
-br(PORT16, gearSetting::ratio6_1, true), tr(PORT17, gearSetting::ratio6_1);
+motor fr(PORT6, gearSetting::ratio6_1, true), mr(PORT19, gearSetting::ratio6_1, true), 
+br(PORT17, gearSetting::ratio6_1, true), tr(PORT20, gearSetting::ratio6_1);
 motor_group drive_right(fr, mr, br, tr);
 
-motor fl(PORT5, gearSetting::ratio6_1), ml(PORT4, gearSetting::ratio6_1), 
-bl(PORT15, gearSetting::ratio6_1), tl(PORT14, gearSetting::ratio6_1, true);
+motor fl(PORT5, gearSetting::ratio6_1), ml(PORT12, gearSetting::ratio6_1), 
+bl(PORT14, gearSetting::ratio6_1), tl(PORT11, gearSetting::ratio6_1, true);
 motor_group drive_left(fl, ml, bl, tl);
 
+// TODO: probably check all of this lol uh oh
 robot_specs_t tank_specs = {
-  .robot_radius = 7.0,
+  .robot_radius = 7.5,
   .odom_wheel_diam = 2.75,
   .odom_gear_ratio = 1,
   .dist_between_wheels = 8.5,
@@ -28,31 +29,31 @@ robot_specs_t tank_specs = {
 
   // Driving PID
   .drive_pid={
-    .p = 0.7,
-    .i = 0,
-    .d = 0.00025, 
-    .f = 0,
-    .k = .1,
-    .deadband = 0.2,
+    .p = 0.1,
+    .i = 0.01,
+    .d = 0.01, 
+    // .f = 0,
+    // .k = .1,
+    .deadband = 1.5,
     .on_target_time = .1
   },
   // Turning PID
   .turn_pid={
-    .p = 0.08, 
-    .i = 0,
-    .d = 0.005, 
-    .f = 0,
-    .deadband = 2.0,
+    .p = 0.03, 
+    .i = 0.01,
+    .d = 0.002, 
+    // .f = 0,
+    .deadband = 5.0,
     .on_target_time = 0.1
   },
   // WARNING: DUMMY VALUES, TO BE REPLACED
   .correction_pid={
-    .p=0.02,
-    .d=0.002
+    .p=0.05,
+    .d=0.01
   }
 };
 
-OdometryTank odom(drive_left, drive_right, tank_specs, &imu, true); // just added the true arg today, did not get to test
+OdometryTank odom(left_enc, right_enc, tank_specs, &imu, true); // just added the true arg today, did not get to test
 
 TankDrive tank_drive(drive_left, drive_right, tank_specs, &odom);
 
@@ -61,8 +62,9 @@ TankDrive tank_drive(drive_left, drive_right, tank_specs, &odom);
 
 motor lift_right(PORT10, gearSetting::ratio18_1), lift_left(PORT1, gearSetting::ratio18_1, true);
 motor_group lift_motors(lift_left, lift_right);
-pneumatics claw(Brain.ThreeWirePort.E);
+pneumatics claw(Brain.ThreeWirePort.H);
 
+// TODO: these are probably fine, but test anyway
 // WARNING: DUMMY VALUES, TO BE REPLACED
 PID::pid_config_t lift_pid = {
   .p = 300,
@@ -78,9 +80,26 @@ rotation lift_sensor(PORT9);
 Lift lift(lift_motors, lift_sensor, claw, lift_pid);
 
 
+// === FORK ===
+
+motor fork_left(PORT15, true), fork_right(PORT16);
+motor_group fork_motors(fork_left, fork_right);
+distance dist(PORT18);
+pneumatics mogo_locks(Brain.ThreeWirePort.G);
+pot fork_pot(Brain.ThreeWirePort.E);
+Fork fork(fork_motors, mogo_locks, dist, fork_pot);
+
+
 // === SENSORS ===
 
+// TODO: steal Nemo's IMU (sorry, Nemo)
 inertial imu(PORT2);
+
+// NOTE: the VEX API assumes an encoder occupies two adjacent ports, always provide the "earlier" port
+CustomEncoder left_enc(Brain.ThreeWirePort.A, 2048);  // ports A & B
+CustomEncoder right_enc(Brain.ThreeWirePort.C, 2048); // ports C & D
+
+// NOTE: Vision sensor is declared and initialized in vision_config.h
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
@@ -89,6 +108,5 @@ inertial imu(PORT2);
  */
 void vexcodeInit(void) {
   imu.calibrate();
-
-  // Nothing to initialize
+  fork.open_clamps();
 }

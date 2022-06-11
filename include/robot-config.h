@@ -2,6 +2,7 @@
 
 #include "core.h"
 #include "subsystems/lift.h"
+#include "subsystems/fork.h"
 
 using namespace vex;
 
@@ -30,10 +31,24 @@ extern pneumatics claw;
 extern Lift lift;
 
 
+// === FORK ===
+
+extern motor fork_right, fork_left;
+extern motor_group fork_motors;
+extern Fork fork;
+extern pneumatics mogo_locks;
+
+
 // === SENSORS ===
 
 extern inertial imu;
 extern rotation lift_sensor;
+extern CustomEncoder left_enc, right_enc;
+extern distance dist;
+extern pot fork_pot;
+
+// NOTE: Vision sensor is declared and initialized in vision_config.h
+
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.

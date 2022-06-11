@@ -1,12 +1,139 @@
 #include "competition/autonomous.h"
 #include "robot-config.h"
-#include <iostream>
+#include "automation.h"
+
+#define OPP_ZONE 68//96 // the distance to the opposing team's home zone,
+#define DISCREPANCY 25
+// #define MID_LINE 72
+
+const position_t robot_start = {
+  .x = 108,
+  .y = 17,
+  .rot = 270
+};
+
+bool fork_has_goal() { return fork.has_goal(); }
+
+/**
+ * Currently aims for the goal immediately in front of the robot
+ */
+void rush_auto() {
+  odom.set_position(robot_start);
+
+  GenericAuto rush;
+
+  // init stuff
+  rush.add([](){ 
+    fork.open_clamps();
+    return true; 
+  });
+
+  // bring the fork down while driving forward
+  rush.add_async([](){ 
+    fork.down();
+    return true;
+  });
+
+  // driving to the goal
+  rush.add([](){ 
+    // stop either when the goal is in the fork or the robot is about to cross into the other home zone
+    while(!drive_to_goal(1.0, fork_has_goal, YELLOW) && odom.get_position().y < OPP_ZONE - DISCREPANCY) {
+      vexDelay(20);
+    }
+    printf("autonomous.cpp: ODOM Y: %f\n", odom.get_position().y);
+    tank_drive.stop(brakeType::brake);  // don't let the robot roll into the other home zone
+
+    if(odom.get_position().x >= OPP_ZONE - DISCREPANCY) {
+      tank_drive.drive_tank(0.5, 0.5);
+      fork.open_clamps();
+      tank_drive.stop();
+    }
+    return true;
+  });
+
+  // delay to make sure clamps are secure
+  rush.add_delay(500);
+
+  
+  rush.add([](){
+    while(!tank_drive.drive_to_point(odom.get_position().x, 48 - DISCREPANCY, 1.0, 0.0)) {
+      vexDelay(20);
+    }
+
+    return true;
+  });
+
+  // let the robot settle before lifting mogo
+  rush.add_delay(500);
+
+  rush.add([]() {
+    fork.lift();
+    return true;
+  });
+
+  // drive to center goal
+  rush.add([](){
+    claw.close();
+
+    while(!tank_drive.drive_to_point(85, 63, 0.5, 0.5)) {
+      vexDelay(20);
+    }
+
+    while(!tank_drive.drive_to_point(88, 68, 0.2, 0.1)) {
+      vexDelay(20);
+    }
+
+    return true;
+  });
+
+  // grab center goal
+  rush.add_delay(500);
+  rush.add([](){
+    claw.open();
+    return true;
+  });
+
+
+  rush.add_delay(500);
+  rush.add([](){
+    while(!tank_drive.turn_to_heading(180, 0.5)) {
+      vexDelay(20);
+    }
+    return true;
+  });
+
+  rush.add([](){
+    lift.set_lift_height(Lift::DRIVING);
+    lift.set_lift_height(Lift::DOWN);
+    return true;
+  });
+
+  // wait for 24
+  rush.add_delay(12000);
+
+  // drive back to home zone
+  rush.add_delay(500);
+  rush.add([](){
+    lift.set_lift_height(Lift::DRIVING);
+    while(!tank_drive.drive_to_point(25, 25, 0.5, 0.5)) {
+      vexDelay(20);
+    }
+    return true;
+  });
+
+  rush.add([](){
+    fork.close_clamps();
+    return true;
+  });
+
+  rush.run(true);
+}
 
 void match() {
   odom.set_position({.x = 0, .y = 0, .rot = 270});
   // wings.deploy();
 
-  while(!tank_drive.drive_forward(33, 0.5, 1, directionType::rev)) {
+  while(!tank_drive.drive_forward(-33, 0.5, 1, directionType::rev)) {
     vexDelay(20);
   }
 
@@ -142,19 +269,8 @@ void Autonomous::autonomous()
 
   // imu.calibrate(); - done in init
   while(imu.isCalibrating()) {}
-
-  // drive_left.resetRotation();
-  // drive_right.resetRotation();
   
   // match();
   // skills();
-  qual();
-
-
-  // ========== MAIN LOOP ==========
-  // while(true)
-  // {
-
-  // }
-
+  rush_auto();
 }

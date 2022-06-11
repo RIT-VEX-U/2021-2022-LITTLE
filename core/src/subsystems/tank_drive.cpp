@@ -18,10 +18,10 @@ void TankDrive::reset_auto()
 /**
  * Stops rotation of all the motors using their "brake mode"
  */
-void TankDrive::stop()
+void TankDrive::stop(brakeType brake)
 {
-  left_motors.stop();
-  right_motors.stop();
+  left_motors.stop(brake);
+  right_motors.stop(brake);
 }
 
 /**
@@ -34,16 +34,8 @@ void TankDrive::drive_tank(double left, double right, int power, bool isdriver)
 {
   left = modify_inputs(left, power);
   right = modify_inputs(right, power);
-
-  if(isdriver == false)
-  {
-    left_motors.spin(directionType::fwd, left * 12, voltageUnits::volt);
-    right_motors.spin(directionType::fwd, right * 12, voltageUnits::volt);
-  }else
-  {
-    left_motors.spin(directionType::fwd, left * 100.0, percentUnits::pct);
-    right_motors.spin(directionType::fwd, right * 100.0, percentUnits::pct);
-  }
+  left_motors.spin(directionType::fwd, left * 12, voltageUnits::volt);
+  right_motors.spin(directionType::fwd, right * 12, voltageUnits::volt);
 }
 
 /**
@@ -205,22 +197,22 @@ bool TankDrive::drive_to_point(double x, double y, double speed, double correcti
   
   int sign = 1;
 
+  // Make an imaginary perpendicualar line to that between the bot and the point. If the point is behind that line,
+  // and the point is within the robot's radius, use negatives for feedback control.
+
+  double angle_to_point = atan2(y - current_pos.y, x - current_pos.x) * 180.0 / PI;
+  double angle = fmod(current_pos.rot - angle_to_point, 360.0);
+  // Normalize the angle between 0 and 360
+  if (angle > 360) angle -= 360;
+  if (angle < 0) angle += 360; 
+  // If the angle is behind the robot, report negative.
+  if (dir == directionType::fwd && angle > 90 && angle < 270)
+    sign = -1;
+  else if(dir == directionType::rev && (angle < 90 || angle > 270))
+    sign = -1;
+
   if (fabs(dist_left) < config.drive_correction_cutoff) 
   {
-    // Make an imaginary perpendicualar line to that between the bot and the point. If the point is behind that line,
-    // and the point is within the robot's radius, use negatives for feedback control.
-
-    double angle_to_point = atan2(y - current_pos.y, x - current_pos.x) * 180.0 / PI;
-    double angle = fmod(current_pos.rot - angle_to_point, 360.0);
-    // Normalize the angle between 0 and 360
-    if (angle > 360) angle -= 360;
-    if (angle < 0) angle += 360; 
-    // If the angle is behind the robot, report negative.
-    if (dir == directionType::fwd && angle > 90 && angle < 270)
-      sign = -1;
-    else if(dir == directionType::rev && (angle < 90 || angle > 270))
-      sign = -1;
-
     // When inside the robot's cutoff radius, report the distance to the point along the robot's forward axis,
     // so we always "reach" the point without having to do a lateral translation
     dist_left *= fabs(cos(angle * PI / 180.0));
@@ -263,7 +255,7 @@ bool TankDrive::drive_to_point(double x, double y, double speed, double correcti
 
   drive_tank(lside, rside);
 
-  printf("dist: %f\n", dist_left);
+  // printf("dist: %f\n", sign * -1 * dist_left);
   fflush(stdout);
 
   // Check if the robot has reached it's destination
@@ -291,8 +283,7 @@ bool TankDrive::turn_to_heading(double heading_deg, double speed)
     return true;
   }
 
-  static bool initialized = false;
-  if(!initialized)
+  if(!func_initialized)
   {
     turn_pid.reset();
     turn_pid.set_limits(-fabs(speed), fabs(speed));
@@ -300,7 +291,7 @@ bool TankDrive::turn_to_heading(double heading_deg, double speed)
     // Set the target to zero, and the input will be a delta.
     turn_pid.set_target(0);
 
-    initialized = true;
+    func_initialized = true;
   }
 
   // Get the difference between the new heading and the current, and decide whether to turn left or right.
@@ -316,7 +307,7 @@ bool TankDrive::turn_to_heading(double heading_deg, double speed)
   // When the robot has reached it's angle, return true.
   if(turn_pid.is_on_target())
   {
-    initialized = false;
+    func_initialized = false;
     stop();
     return true;
   }
@@ -333,7 +324,7 @@ double TankDrive::modify_inputs(double input, int power)
   return (power % 2 == 0 ? (input < 0 ? -1 : 1) : 1) * pow(input, power);
 }
 
-bool TankDrive::pure_pursuit(std::vector<PurePursuit::hermite_point> path, double radius, double speed, double res) {
+bool TankDrive::pure_pursuit(std::vector<PurePursuit::hermite_point> path, double radius, double speed, double res, directionType dir) {
   is_pure_pursuit = true;
   std::vector<Vector::point_t> smoothed_path = PurePursuit::smooth_path_hermite(path, res);
 
@@ -345,7 +336,7 @@ bool TankDrive::pure_pursuit(std::vector<PurePursuit::hermite_point> path, doubl
   if(is_last_point)
     is_pure_pursuit = false;
 
-  bool retval = drive_to_point(lookahead.x, lookahead.y, speed, 1);
+  bool retval = drive_to_point(lookahead.x, lookahead.y, speed, 1, dir);
 
   if(is_last_point)
     return retval;
